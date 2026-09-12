@@ -49,6 +49,7 @@ class Sub(Node):
         #   - callback: function that handles incoming messages
         #   - qos: quality of service depth for the subscription queue
         #   Typical use: receive sensor updates, commands, or status messages.
+        self.subscription = self.create_subscription(String, 'topic', self.listener_callback, 10)
 
     # Create a callback function that prints the received message.
     # The callback should accept a String message and log the data.
@@ -56,6 +57,7 @@ class Sub(Node):
         # TODO: Log the incoming message data
 
         # self.get_logger():
+        self.get_logger().info(msg.data)
         #   Returns the node's ROS logger, which is used for logging messages to
         #   the terminal and ROS logs.
         #   Usage: self.get_logger().info('message')
@@ -67,10 +69,12 @@ class Sub(Node):
         
         pass
 
-
-if __name__ == '__main__':
+def main():
     rclpy.init()
     node = Sub()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+    
+if __name__ == '__main__':
+    main()
