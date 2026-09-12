@@ -2,7 +2,8 @@
 # In this exercise, you will build a client node that requests a random integer
 # from a service server. The client sends a minimum and maximum value, and the
 # service responds with a generated number within that range.
-#
+from interfaces.srv import RandomNumber
+
 # The exercise introduces the basic ROS 2 service client pattern:
 # - create a custom node class that inherits from rclpy.node.Node
 # - initialize the node with a unique name, such as "random_number_client"
@@ -14,7 +15,7 @@
 # This file is the client half of the exercise. It sends a request to the server
 # and prints the generated random value. Together, these two nodes demonstrate
 # how ROS 2 services provide synchronous request/response communication.
-
+import random
 import rclpy
 from rclpy.node import Node
 
@@ -50,22 +51,31 @@ class ServiceClient(Node):
         #   - ServiceType: the ROS service class you defined in an .srv file
         #   - 'service_name': name of the service to call
         #   Typical use: request a computation, configuration, or value from a server.
-        #
+        self.cli = self.create_client(RandomNumber, 'RandomNumber')
+        while not self.cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        self.req = RandomNumber.Request()
         # self.get_logger():
         #   Returns the node's ROS logger, used to print request/response details.
         #   Usage: self.get_logger().info('message')
 
     # Create a method that sends the service request.
     def send_request(self):
-        # TODO: Build a request object with a min and max range
-        # TODO: Call the service and wait for a response
-        # TODO: Log the returned random number
-        pass
+        self.req.min_value = 1
+        self.req.max_value = 100
+        self.future = self.cli.call_async(self.req)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
 
-
-if __name__ == '__main__':
+def main():
     rclpy.init()
     node = ServiceClient()
+    response = node.send_request()
+    node.get_logger().info(
+        'Random val: %d' % response.random_number)
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+if __name__ == '__main__':
+    main()
+    

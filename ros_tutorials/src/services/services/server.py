@@ -4,7 +4,8 @@
 # The goal is to practice the request/response communication pattern used in ROS:
 # a client sends a request, the server processes it, and the server returns a
 # result to the client.
-#
+import random
+from interfaces.srv import RandomNumber
 # The exercise introduces the basic ROS 2 service server pattern:
 # - create a custom node class that inherits from rclpy.node.Node
 # - initialize the node with a unique name, such as "random_number_server"
@@ -21,6 +22,7 @@
 
 import rclpy
 from rclpy.node import Node
+
 
 # Service design:
 #   Request: min_value, max_value
@@ -56,7 +58,7 @@ class ServiceServer(Node):
         #   - callback: function that receives request and returns a response
         #   Typical use: handle operations such as calculations, data generation,
         #   or device control requests.
-        #
+        self.srv = self.create_service(RandomNumber, 'RandomNumber', self.generate_random_number)
         # self.get_logger():
         #   Returns the node's ROS logger, used for printing status and debug output.
         #   Usage: self.get_logger().info('message')
@@ -68,16 +70,20 @@ class ServiceServer(Node):
     # The callback should read the request values, generate a value between min and max (inclusive),
     # and return a response containing the generated number.
     def generate_random_number(self, request, response):
+        response.random_number = random.randint(request.min_value,request.max_value)
+
         # TODO: Read request.min and request.max
         # TODO: Generate a random integer in the requested range
         # TODO: Set response.random_number to the generated value
         # TODO: Return response
         return response
 
-
-if __name__ == '__main__':
+def main():
     rclpy.init()
     node = ServiceServer()
     rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
